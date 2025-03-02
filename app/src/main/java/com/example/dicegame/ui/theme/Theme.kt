@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Modern Color Palette
+
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF64B5F6),      // Light Blue
     secondary = Color(0xFF81C784),    // Light Green
@@ -36,7 +36,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color.Black
 )
 
-// Modern Typography
+
 val ModernTypography = Typography(
     titleLarge = Typography().titleLarge.copy(
         fontSize = 24.sp,
