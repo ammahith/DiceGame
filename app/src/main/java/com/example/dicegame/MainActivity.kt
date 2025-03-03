@@ -25,8 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.graphicsLayer
 import com.example.dicegame.ui.theme.DiceGameTheme
-import androidx.compose.ui.text.font.FontWeight
 import kotlin.random.Random
+import androidx.compose.ui.text.font.FontWeight
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -43,25 +43,27 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun DiceGameScreen() {
-    var currentPlayer by remember { mutableIntStateOf(1) }
-    var player1Score by remember { mutableIntStateOf(0) }
-    var player2Score by remember { mutableIntStateOf(0) }
-    var jackpot by remember { mutableIntStateOf(5) }
-    var message by remember { mutableStateOf("") }
-    var num1 by remember { mutableIntStateOf(0) }
-    var num2 by remember { mutableIntStateOf(0) }
-    var correctAnswer by remember { mutableIntStateOf(0) }
-    var playerAnswer by remember { mutableStateOf(TextFieldValue("")) }
-    var diceRoll by remember { mutableIntStateOf(1) }
-    var isRollAgainActive by remember { mutableStateOf(false) }
-    var problemSolved by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf("") }
-    var isWinner by remember { mutableStateOf(false) }
-    var winnerMessage by remember { mutableStateOf("") }
-    var triggerDiceRoll by remember { mutableStateOf(false) }
-    var jackpotProblemType by remember { mutableIntStateOf(1) }
-    var pendingTurnSwitch by remember { mutableStateOf(false) } // Track if a turn switch is pending
+    // State variables for game logic and UI
+    var currentPlayer by remember { mutableIntStateOf(1) } // Tracks the current player (1 or 2)
+    var player1Score by remember { mutableIntStateOf(0) } // Player 1's score
+    var player2Score by remember { mutableIntStateOf(0) } // Player 2's score
+    var jackpot by remember { mutableIntStateOf(5) } // Jackpot points, starts at 5
+    var message by remember { mutableStateOf("") } // Message displayed below the die (e.g., problem to solve)
+    var num1 by remember { mutableIntStateOf(0) } // First number for the math problem
+    var num2 by remember { mutableIntStateOf(0) } // Second number for the math problem
+    var correctAnswer by remember { mutableIntStateOf(0) } // Correct answer to the problem
+    var playerAnswer by remember { mutableStateOf(TextFieldValue("")) } // Player's input answer
+    var diceRoll by remember { mutableIntStateOf(1) } // Current dice roll (1 to 6)
+    var isRollAgainActive by remember { mutableStateOf(false) } // Tracks if "Roll Again" is active (dice roll 4)
+    var problemSolved by remember { mutableStateOf(true) } // Tracks if the current problem is solved
+    var errorMessage by remember { mutableStateOf("") } // Error message for invalid input
+    var isWinner by remember { mutableStateOf(false) } // Tracks if there’s a winner
+    var winnerMessage by remember { mutableStateOf("") } // Winner message (e.g., "Player 1 Wins!")
+    var triggerDiceRoll by remember { mutableStateOf(false) } // Triggers dice roll animation
+    var jackpotProblemType by remember { mutableIntStateOf(1) } // Tracks jackpot problem type (1=addition, 2=subtraction, 3=multiplication)
+    var pendingTurnSwitch by remember { mutableStateOf(false) } // Tracks if a turn switch is pending (dice roll 5)
 
+    // Animation state for dice rotation
     val rotationState = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -83,9 +85,7 @@ fun DiceGameScreen() {
     // Handle turn switch after losing a turn (dice roll 5)
     LaunchedEffect(pendingTurnSwitch) {
         if (pendingTurnSwitch) {
-            // Small delay to ensure the UI updates before allowing the next roll
             coroutineScope.launch {
-                // Reset the pending turn switch and allow the next roll
                 problemSolved = true
                 pendingTurnSwitch = false
             }
@@ -103,18 +103,17 @@ fun DiceGameScreen() {
                     .verticalScroll(rememberScrollState())
                     .imePadding(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(20.dp) // Increased spacing for better readability
             ) {
-                // Header
+                // Header: App Title
                 Text(
                     text = "Dice Game",
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                // Player Scores and Jackpot
+                // Player Scores and Jackpot Section
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
@@ -123,34 +122,26 @@ fun DiceGameScreen() {
                 ) {
                     Text(
                         text = "Player 1: $player1Score points",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.secondary
                     )
                     Text(
                         text = "Player 2: $player2Score points",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.tertiary
-                        )
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.tertiary
                     )
                 }
                 Text(
                     text = "Jackpot: $jackpot points",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.error
-                    )
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 // Current Player
                 Text(
                     text = "Current Player: P$currentPlayer",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 // Dice Image with Rotation Animation
@@ -181,19 +172,19 @@ fun DiceGameScreen() {
                                             num1 = Random.nextInt(0, 100)
                                             num2 = Random.nextInt(0, 100)
                                             correctAnswer = num1 + num2
-                                            message = "Addition! Solve: $num1 + $num2"
+                                            message = "Addition! Solve: $num1 + $num2 (1 point)"
                                         }
                                         2 -> {
                                             num1 = Random.nextInt(0, 100)
                                             num2 = Random.nextInt(0, 100)
                                             correctAnswer = num1 - num2
-                                            message = "Subtraction! Solve: $num1 - $num2"
+                                            message = "Subtraction! Solve: $num1 - $num2 (2 points)"
                                         }
                                         3 -> {
-                                            num1 = Random.nextInt(0, 20)
-                                            num2 = Random.nextInt(0, 20)
+                                            num1 = Random.nextInt(0, 21)
+                                            num2 = Random.nextInt(0, 21)
                                             correctAnswer = num1 * num2
-                                            message = "Multiplication! Solve: $num1 × $num2"
+                                            message = "Multiplication! Solve: $num1 × $num2 (3 points)"
                                         }
                                         4 -> {
                                             message = "Roll Again for Double Points! Press 'Roll Again' to proceed."
@@ -202,7 +193,7 @@ fun DiceGameScreen() {
                                         5 -> {
                                             message = "Lose a turn! Switching to Player ${if (currentPlayer == 1) 2 else 1}."
                                             currentPlayer = if (currentPlayer == 1) 2 else 1
-                                            pendingTurnSwitch = true // Trigger turn switch
+                                            pendingTurnSwitch = true
                                         }
                                         6 -> {
                                             jackpotProblemType = Random.nextInt(1, 4)
@@ -211,19 +202,19 @@ fun DiceGameScreen() {
                                                     num1 = Random.nextInt(0, 100)
                                                     num2 = Random.nextInt(0, 100)
                                                     correctAnswer = num1 + num2
-                                                    message = "Jackpot! Addition - Solve: $num1 + $num2"
+                                                    message = "Jackpot! Addition - Solve: $num1 + $num2 ($jackpot points)"
                                                 }
                                                 2 -> {
                                                     num1 = Random.nextInt(0, 100)
                                                     num2 = Random.nextInt(0, 100)
                                                     correctAnswer = num1 - num2
-                                                    message = "Jackpot! Subtraction - Solve: $num1 - $num2"
+                                                    message = "Jackpot! Subtraction - Solve: $num1 - $num2 ($jackpot points)"
                                                 }
                                                 3 -> {
-                                                    num1 = Random.nextInt(0, 20)
-                                                    num2 = Random.nextInt(0, 20)
+                                                    num1 = Random.nextInt(0, 21)
+                                                    num2 = Random.nextInt(0, 21)
                                                     correctAnswer = num1 * num2
-                                                    message = "Jackpot! Multiplication - Solve: $num1 × $num2"
+                                                    message = "Jackpot! Multiplication - Solve: $num1 × $num2 ($jackpot points)"
                                                 }
                                             }
                                         }
@@ -231,9 +222,22 @@ fun DiceGameScreen() {
                                 }
                             }
                         },
-                        enabled = problemSolved && !triggerDiceRoll && !pendingTurnSwitch // Disable until turn switch completes
+                        enabled = problemSolved && !triggerDiceRoll && !pendingTurnSwitch,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = MaterialTheme.shapes.medium,
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 8.dp
+                        )
                     ) {
-                        Text("Roll Dice")
+                        Text(
+                            text = "Roll Dice",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 
@@ -257,53 +261,82 @@ fun DiceGameScreen() {
                                     message = "Roll Again: Subtraction! Solve: $num1 - $num2 (Double Points: 4)"
                                 }
                                 3 -> {
-                                    num1 = Random.nextInt(0, 20)
-                                    num2 = Random.nextInt(0, 20)
+                                    num1 = Random.nextInt(0, 21)
+                                    num2 = Random.nextInt(0, 21)
                                     correctAnswer = num1 * num2
                                     message = "Roll Again: Multiplication! Solve: $num1 × $num2 (Double Points: 6)"
                                 }
                             }
                         },
-                        enabled = !problemSolved
+                        enabled = !problemSolved,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary
+                        ),
+                        shape = MaterialTheme.shapes.medium,
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 8.dp
+                        )
                     ) {
-                        Text("Roll Again")
+                        Text(
+                            text = "Roll Again",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 
-                // Display Message
+                // Display Message (problem to solve or game status)
                 AnimatedContent(
                     targetState = message,
                     transitionSpec = {
                         fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
                     }
-                ) {
-                    Text(it)
+                ) { targetMessage ->
+                    Text(
+                        text = targetMessage,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
                 }
 
-                // Combined Input Field for All Problems
+                // Input Field for Solving Problems
                 if (message.contains("Solve:") && !problemSolved) {
                     TextField(
                         value = playerAnswer,
                         onValueChange = { playerAnswer = it },
                         label = { Text("Your Answer") },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
                         isError = errorMessage.isNotEmpty(),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done
                         ),
                         keyboardActions = KeyboardActions(
-                            onDone = {
-                                focusManager.clearFocus()
-                            }
+                            onDone = { focusManager.clearFocus() }
+                        ),
+                        shape = MaterialTheme.shapes.small,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            errorContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                         )
                     )
 
                     if (errorMessage.isNotEmpty()) {
                         Text(
                             text = errorMessage,
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall
+                            modifier = Modifier.padding(start = 16.dp)
                         )
                     }
 
@@ -421,9 +454,22 @@ fun DiceGameScreen() {
                                 currentPlayer = if (currentPlayer == 1) 2 else 1
                             }
                         },
-                        enabled = !problemSolved
+                        enabled = !problemSolved,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = MaterialTheme.shapes.medium,
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 8.dp
+                        )
                     ) {
-                        Text("Guess")
+                        Text(
+                            text = "Guess",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 
@@ -443,24 +489,43 @@ fun DiceGameScreen() {
                             coroutineScope.launch {
                                 rotationState.snapTo(0f)
                             }
-                        }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = MaterialTheme.shapes.medium,
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 8.dp
+                        )
                     ) {
-                        Text("Play Again")
+                        Text(
+                            text = "Play Again",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
 
                     Text(
                         text = winnerMessage,
-                        style = MaterialTheme.typography.headlineLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
+
+                // Add bottom padding to ensure content isn’t cut off
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     )
 }
 
+/**
+ * Maps the dice roll value to the corresponding die image resource.
+ * @param roll The dice roll value (1 to 6).
+ * @return The resource ID of the die image.
+ */
 fun getDiceImage(roll: Int): Int {
     return when (roll) {
         1 -> R.drawable.die1

@@ -81,7 +81,7 @@ fun DiceGameTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = ModernTypography, // Use Modern Typography
+        typography = ModernTypography,
         content = content
     )
 }
